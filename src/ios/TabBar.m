@@ -12,16 +12,14 @@
 #import <QuartzCore/QuartzCore.h>
 
 @implementation TabBar
-#ifndef __IPHONE_3_0
-@synthesize webView;
-#endif
+
 
 - (void) pluginInitialize {
     
-    UIWebView *uiwebview = nil;
-    if ([self.webView isKindOfClass:[UIWebView class]]) {
-        uiwebview = ((UIWebView*)self.webView);
-    }
+//    UIWebView *uiwebview = nil;
+//    if ([self.webView isKindOfClass:[UIWebView class]]) {
+//        uiwebview = ((UIWebView*)self.webView);
+//    }
     tabBarItems = [[NSMutableDictionary alloc] initWithCapacity:5];
     
     // -----------------------------------------------------------------------
@@ -32,128 +30,13 @@
     // Cordova seems to initialize plugins on the first call, there is a plugin method init() that has to be called
     // in order to make Cordova call *this* method. If someone forgets the init() call and uses the navigation bar
     // and tab bar plugins together, these values won't be the original web view frame and layout will be wrong.
-    originalWebViewFrame = uiwebview.frame;
+    originalWebViewFrame = self.viewController.view.frame;
     
-    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-    [[NSNotificationCenter defaultCenter]
-     addObserver:self selector:@selector(orientationChanged:)
-     name:UIDeviceOrientationDidChangeNotification
-     object:[UIDevice currentDevice]];
     
     navBarHeight = 44.0f;
     tabBarHeight = 49.0f;
     tabBarAtBottom = true;
     
-}
-
-- (void) orientationChanged:(NSNotification *)note
-{
-    UIDevice * device = note.object;
-    switch(device.orientation)
-    {
-        case UIDeviceOrientationPortrait:
-            NSLog(@"NavBar Orientation Changed to portrait");
-            [self correctWebViewFrame];
-            break;
-            
-        case UIDeviceOrientationPortraitUpsideDown:
-            NSLog(@"NavBar Orientation Changed to upsidedown");
-            [self correctWebViewFrame];
-            break;
-            
-        default:
-            NSLog(@"NavBar Orientation Changed to landscape");
-            float statusBarHeight = 20.0f;
-            [self correctWebViewFrame];
-            break;
-    };
-    
-}
-
--(void)correctWebViewFrame
-{
-    if(!tabBar)
-    return;
-    
-    const bool tabBarShown = !tabBar.hidden;
-    bool navBarShown = false;
-    
-    UIView *parent = [tabBar superview];
-    for(UIView *view in parent.subviews)
-    if([view isMemberOfClass:[UINavigationBar class]])
-    {
-        navBarShown = !view.hidden;
-        break;
-    }
-    
-    // -----------------------------------------------------------------------------
-    // IMPORTANT: Below code is the same in both the navigation and tab bar plugins!
-    // -----------------------------------------------------------------------------
-    
-    
-    
-    currentDeviceOrientation = [[UIDevice currentDevice] orientation];
-    
-    BOOL isLandscape = [UIApplication sharedApplication].statusBarOrientation == (UIInterfaceOrientationLandscapeLeft | UIInterfaceOrientationLandscapeRight);
-    BOOL isPortrait = [UIApplication sharedApplication].statusBarOrientation == UIInterfaceOrientationPortrait;
-    
-    CGFloat left, right, top, bottom;
-    
-    left = [UIScreen mainScreen].bounds.origin.x;
-    right = left + [UIScreen mainScreen].bounds.size.width;
-    
-    if (@available(iOS 11.0, *)) {
-        top = [UIScreen mainScreen].bounds.origin.y + [[self webView] superview].safeAreaInsets.top;
-        if (isPortrait) bottom = top + [UIScreen mainScreen].bounds.size.height - [[self webView] superview].safeAreaInsets.top;
-        else bottom = top + [UIScreen mainScreen].bounds.size.height;
-    } else {
-        top = [UIScreen mainScreen].bounds.origin.y + 20.0f;
-        bottom = top + [UIScreen mainScreen].bounds.size.height - 20.0f;
-    }
-    
-    if (isLandscape) NSLog(@"TabBar Current Orientation: Landscape");
-    if (isPortrait) NSLog(@"TabBar Current Orientation: Portrait");
-    
-    if(navBarShown)
-    top += navBarHeight;
-    
-    if(tabBarShown)
-    {
-        if(tabBarAtBottom)
-        bottom -= tabBarHeight;
-        else
-        top += tabBarHeight;
-    }
-    
-    CGRect webViewFrame;
-    
-    if (@available(iOS 11.0, *)) {
-        webViewFrame = CGRectMake(left, top, right - left, bottom - top - [[self webView] superview].safeAreaInsets.bottom);
-    } else {
-        webViewFrame = CGRectMake(left, top, right - left, bottom - top);
-    }
-    
-    [self.webView setFrame:webViewFrame];
-    
-    // -----------------------------------------------------------------------------
-    CGFloat iphonexfix = 0.0f;
-    // NOTE: Following part again for tab bar plugin only
-    if (@available(iOS 11.0, *)) {
-        if ([[self webView] superview].safeAreaInsets.bottom > 0) iphonexfix = 35.0f;
-        else iphonexfix = 0.0f;
-    }
-    
-    
-    if(tabBarShown)
-    {
-        if(tabBarAtBottom)
-        [tabBar setFrame:CGRectMake(left, [UIScreen mainScreen].bounds.origin.y + [UIScreen mainScreen].bounds.size.height - tabBarHeight - iphonexfix, right - left, tabBarHeight)];
-        
-        else
-        [tabBar setFrame:CGRectMake(left, [UIScreen mainScreen].bounds.origin.y, right - left, tabBarHeight)];
-        
-        NSLog(@"Screen height: %f", webViewFrame.size.height);
-    }
 }
 
 - (UIColor*)colorStringToColor:(NSString*)colorStr
@@ -177,17 +60,16 @@
     tabBar.delegate = self;
     tabBar.multipleTouchEnabled   = NO;
     tabBar.autoresizesSubviews    = YES;
-    tabBar.hidden                 = YES;
+    tabBar.hidden                 = NO;
     tabBar.userInteractionEnabled = YES;
     tabBar.opaque = YES;
-    tabBar.barStyle = UIBarStyleDefault;
+    tabBar.unselectedItemTintColor = [UIColor systemGrayColor];
+    tabBar.tintColor = [self colorStringToColor:@"151,88,235,255"];
     
-    //[tabBar setBarTintColor:[UIColor colorWithRed:218.0/255.0 green:33.0/255.0 blue:39.0/255.0 alpha:1.0]];
-    [tabBar setTintColor:[UIColor colorWithRed:218.0/255.0 green:33.0/255.0 blue:39.0/255.0 alpha:1.0]];
-    //[tabBar setBackgroundColor:[UIColor colorWithRed:218.0/255.0 green:33.0/255.0 blue:39.0/255.0 alpha:1.0]];
-    
-    
-    [tabBar setSelectedImageTintColor:[UIColor redColor]];
+    CGRect f = tabBar.frame;
+    f.origin.x = 0;
+    f.origin.y = [UIScreen mainScreen].bounds.size.height + 100.0f;
+    [tabBar setFrame: f];
     
     self.webView.superview.autoresizesSubviews = YES;
     
@@ -209,36 +91,16 @@
  */
 - (void)show:(CDVInvokedUrlCommand*)command
 {
-    if (!tabBar)
-        [self create:nil];
-    NSLog(@"Show TabBar");
-    // if we are calling this again when its shown, reset
-    if (!tabBar.hidden)
-        return;
-    NSLog(@"Show TabBar222");
-    const id options = [command argumentAtIndex:0];
+    if (!tabBar) return;
     
-    if(options && options != [NSNull null])
-    {
-        id tabBarHeightOpt = [options objectForKey:@"height"];
-        id positionOpt = [options objectForKey:@"position"];
+    [UIView animateWithDuration:0.3 animations:^() {
+        CGRect f = self->tabBar.frame;
+        CGFloat y = [UIScreen mainScreen].bounds.size.height - self->tabBarHeight - self.viewController.view.safeAreaInsets.bottom;
+        f.origin.y = y;
+        [self->tabBar setFrame:f];
+    } completion:^(BOOL finished) {
         
-        if(tabBarHeightOpt && tabBarHeightOpt != [NSNull null])
-            tabBarHeight = [tabBarHeightOpt floatValue];
-        
-        if([positionOpt isKindOfClass:[NSString class]])
-            tabBarAtBottom = ![positionOpt isEqualToString:@"top"];
-    }
-    NSLog(@"Show TabBar333");
-    tabBar.tabBarAtBottom = tabBarAtBottom;
-    
-    if(tabBarHeight == 0)
-        tabBarHeight = 49.0f;
-    
-    tabBar.hidden = NO;
-    tabBar.alpha = 1;
-    NSLog(@"Show TabBar444");
-    [self correctWebViewFrame];
+    }];
 }
 
 /**
@@ -249,7 +111,7 @@
  */
 - (void)resize:(CDVInvokedUrlCommand*)command
 {
-    [self correctWebViewFrame];
+//    [self correctWebViewFrame];
 }
 
 /**
@@ -260,19 +122,16 @@
  */
 - (void)hide:(CDVInvokedUrlCommand*)command
 {
-    
-    if (tabBar.hidden) return;
-    NSLog(@"HIDE TABBAR");
-    if (!tabBar)
-        [self create:nil];
-    
-    [UIView animateWithDuration:0.5 animations:^() {
-        tabBar.alpha = 0;
-        tabBar.hidden = YES;
+    if (!tabBar) return;
+    [UIView animateWithDuration:0.3 animations:^() {
+        CGRect f = self->tabBar.frame;
+        CGFloat y = [UIScreen mainScreen].bounds.size.height + 100.0f;
+        f.origin.y = y;
+        [self->tabBar setFrame:f];
         
     } completion:^(BOOL finished) {
         
-        [self correctWebViewFrame];
+//        [self correctWebViewFrame];
     }];
     
 }
@@ -313,31 +172,17 @@
     
     NSString  *name      = [command argumentAtIndex:0];
     NSString  *title     = [command argumentAtIndex:1];
-    NSString  *imageName = [command argumentAtIndex:2];
+    NSDictionary  *imageName = [command argumentAtIndex:2];
     int tag              = [[command argumentAtIndex:3] intValue];
     
     UITabBarItem *item = nil;
-    if ([imageName length] > 0)
-    {
-        UITabBarSystemItem systemItem = -1;
-        if ([imageName isEqualToString:@"tabButton:More"])       systemItem = UITabBarSystemItemMore;
-        else if ([imageName isEqualToString:@"tabButton:Favorites"])  systemItem = UITabBarSystemItemFavorites;
-        else if ([imageName isEqualToString:@"tabButton:Featured"])   systemItem = UITabBarSystemItemFeatured;
-        else if ([imageName isEqualToString:@"tabButton:TopRated"])   systemItem = UITabBarSystemItemTopRated;
-        else if ([imageName isEqualToString:@"tabButton:Recents"])    systemItem = UITabBarSystemItemRecents;
-        else if ([imageName isEqualToString:@"tabButton:Contacts"])   systemItem = UITabBarSystemItemContacts;
-        else if ([imageName isEqualToString:@"tabButton:History"])    systemItem = UITabBarSystemItemHistory;
-        else if ([imageName isEqualToString:@"tabButton:Bookmarks"])  systemItem = UITabBarSystemItemBookmarks;
-        else if ([imageName isEqualToString:@"tabButton:Search"])     systemItem = UITabBarSystemItemSearch;
-        else if ([imageName isEqualToString:@"tabButton:Downloads"])  systemItem = UITabBarSystemItemDownloads;
-        else if ([imageName isEqualToString:@"tabButton:MostRecent"]) systemItem = UITabBarSystemItemMostRecent;
-        else if ([imageName isEqualToString:@"tabButton:MostViewed"]) systemItem = UITabBarSystemItemMostViewed;
-        if (systemItem != -1)
-            item = [[UITabBarItem alloc] initWithTabBarSystemItem:systemItem tag:tag];
-    }
-    
-    if (item == nil)
-        item = [[UITabBarItem alloc] initWithTitle:title image:[UIImage imageNamed:imageName] tag:tag];
+    NSString * img = [imageName valueForKey:@"img"];
+    NSString * img1 = [imageName valueForKey:@"img1"];
+    CGFloat size = [[imageName valueForKey:@"size"] floatValue];
+    UIImage * image = [self resize:[UIImage imageWithContentsOfFile:img] to: size];
+    UIImage * image1 = [self resize:[UIImage imageWithContentsOfFile:img1] to: size];
+    item = [[UITabBarItem alloc] initWithTitle:title image: image tag:tag];
+    [item setSelectedImage: image1];
     
     if(options && options != [NSNull null])
     {
@@ -361,8 +206,7 @@
  */
 - (void)updateItem:(CDVInvokedUrlCommand*)command
 {
-    if (!tabBar)
-        [self create:nil];
+    if (!tabBar) [self create:nil];
     
     const NSDictionary *options = [command argumentAtIndex:1];
     
@@ -376,12 +220,14 @@
     UITabBarItem *item = [tabBarItems objectForKey:name];
     if(item)
     {
-        id badgeOpt = [options objectForKey:@"badge"];
         
-        if(badgeOpt && badgeOpt != [NSNull null])
-            item.badgeValue = [NSString stringWithFormat:@"%@", badgeOpt];
-        else
-            item.badgeValue = nil;
+        if([options valueForKey:@"badge"] != nil){
+            int badge = [[options valueForKey:@"badge"] intValue];
+            if(badge > 0)
+                item.badgeValue = [NSString stringWithFormat:@"%d", badge];
+            else
+                item.badgeValue = nil;
+        }
     }
 }
 
@@ -398,11 +244,11 @@
 - (void)showItems:(CDVInvokedUrlCommand*)command
 {
     NSLog(@"Show Items");
-    if (!tabBar)
-        [self create:nil];
+    if (!tabBar) [self create:nil];
     NSLog(@"Arguments: %@", [command argumentAtIndex:0]);
-    int i, count = [[command argumentAtIndex:0] count];
-    NSLog(@"arguments: %d", count);
+    int i;
+    NSUInteger count = [[command argumentAtIndex:0] count];
+    NSLog(@"arguments: %lu", (unsigned long)count);
     //NSDictionary *options = nil;
     
     NSMutableArray *items = [[NSMutableArray alloc] initWithCapacity:MAX(count - 1, 1)];
@@ -451,17 +297,20 @@
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item
 {
-    NSString * jsCallBack = [NSString stringWithFormat:@"tabbar.onItemSelected(%d);", item.tag];
-    NSLog(@"Item Selected with tab: %ld", (long)item.tag);
-    
-    UIWebView *uiwebview = nil;
-    if ([self.webView isKindOfClass:[UIWebView class]]) {
-        uiwebview = ((UIWebView*)self.webView);
-    }
-    //[uiwebview stringByEvaluatingJavaScriptFromString:jsCallBack];
-    
+    NSString * jsCallBack = [NSString stringWithFormat:@"tabbar.onItemSelected(%ld);", (long)item.tag];
+
     [self.commandDelegate evalJs:jsCallBack];
     
+}
+
+-(UIImage *)resize:(UIImage*)img to:(CGFloat)size
+{
+    CGSize itemSize = CGSizeMake(size, size); // 假设你想要的大小
+    UIGraphicsBeginImageContextWithOptions(itemSize, NO, 0.0);
+    [img drawInRect:CGRectMake(0, 0, itemSize.width, itemSize.height)];
+    UIImage *scaledImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return scaledImage;
 }
 
 @end
