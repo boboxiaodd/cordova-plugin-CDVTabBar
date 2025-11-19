@@ -78,6 +78,7 @@ function TabBar() {
     this.tag = 0;
     this.callbacks = {};
     this.selectedItem = null;
+    this.isShow = false;
 }
 
 /**
@@ -144,6 +145,7 @@ TabBar.prototype.hide = function (animate) {
     if (animate === undefined || animate === null)
         animate = true;
     cordova.exec("TabBar.hide", {animate: animate});
+    this.isShow = false;
 };
 
 /**
@@ -185,6 +187,7 @@ TabBar.prototype.selectItem = function (tab) {
  */
 TabBar.prototype.show = function (options) {
     cordova.exec("TabBar.show", options || {});
+    this.isShow = true;
 };
 
 /**
