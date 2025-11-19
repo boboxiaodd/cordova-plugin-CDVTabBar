@@ -40,14 +40,14 @@ TabBar.prototype.create = function (options) {
  *   - tabButton:MostRecent
  *   - tabButton:MostViewed
  * @param {String} name internal name to refer to this tab by
- * @param {String} [title] title text to show on the tab, or null if no text should be shown
+ * @param label
  * @param {String} [image] image filename or internal identifier to show, or null if now image should be shown
  * @param {Object} [options] Options for customizing the individual tab item
  *  - \c badge value to display in the optional circular badge on the item; if null or unspecified, the badge will be hidden
  */
 TabBar.prototype.createItem = function (name, label, image, options) {
 
-    var tag = this.tag++;
+    let tag = this.tag++;
     if (options && 'onSelect' in options && typeof (options['onSelect']) == 'function') {
         this.callbacks[tag] = {'onSelect': options.onSelect, 'name': name};
     }
@@ -97,9 +97,9 @@ TabBar.prototype.resize = function () {
 
 /**
  * Manually select an individual tab bar item, or nil for deselecting a currently selected tab bar item.
- * @param {String} tabName the name of the tab to select, or null if all tabs should be deselected
  * @see createItem
  * @see showItems
+ * @param tab
  */
 TabBar.prototype.selectItem = function (tab) {
     cordova.exec(null,null,"TabBar","selectItem", [tab]);
@@ -107,30 +107,24 @@ TabBar.prototype.selectItem = function (tab) {
 
 /**
  * Show a tab bar.  The tab bar has to be created first.
- * @param {Object} [options] Options indicating how the tab bar should be shown:
  * - \c height integer indicating the height of the tab bar (default: \c 49)
  * - \c position specifies whether the tab bar will be placed at the \c top or \c bottom of the screen (default: \c bottom)
  */
-TabBar.prototype.show = function (options) {
-    options = options || {};
-    if(!("style" in options))
-        options.style = style || "Default";
-    cordova.exec(null, null, "TabBar", "show", [style, options]);
+TabBar.prototype.show = function () {
+    cordova.exec(null, null, "TabBar", "show", []);
     this.isShow = true;
 };
 
 /**
  * Show previously created items on the tab bar
  * @param {String} arguments... the item names to be shown
- * @param {Object} [options] dictionary of options, notable options including:
  *  - \c animate indicates that the items should animate onto the tab bar
  * @see createItem
  * @see create
  */
 TabBar.prototype.showItems = function () {
-    //exec.apply(this, parameters);
-    var parameters = [];
-    for (var i = 0; i < arguments.length; i++) {
+    let parameters = [];
+    for (let i = 0; i < arguments.length; i++) {
         parameters.push(arguments[i]);
     }
     cordova.exec(null, null, "TabBar", "showItems", [parameters]);
