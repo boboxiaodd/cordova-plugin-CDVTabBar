@@ -297,7 +297,7 @@
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item
 {
-    NSString * jsCallBack = [NSString stringWithFormat:@"tabbar.onItemSelected(%ld);", (long)item.tag];
+    NSString * jsCallBack = [NSString stringWithFormat:@"window.plugins.tabBar.onItemSelected(%ld);", (long)item.tag];
 
     [self.commandDelegate evalJs:jsCallBack];
     
