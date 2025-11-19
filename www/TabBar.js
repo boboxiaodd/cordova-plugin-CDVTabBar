@@ -1,78 +1,5 @@
 var exec = require('cordova/exec');
-var platform = require('cordova/platform');
 
-this.tag = 0;
-this.callbacks = {};
-this.selectedItem = null;
-this.isShow = false;
-module.exports = {
-    checkIsShow: function (){
-        return this.isShow
-    },
-    create: function (style, options) {
-        options = options || {};
-        if (!("style" in options))
-            options.style = style || "Default";
-        exec(null, null, "TabBar", "create", [style, options]);
-
-    },
-    show: function (style, options) {
-        options = options || {};
-        if (!("style" in options))
-            options.style = style || "Default";
-        exec(null, null, "TabBar", "show", [style, options]);
-        this.isShow = true;
-    },
-    getSelectedItem: function () {
-        return this.selectedItem;
-    },
-    hide: function (animate) {
-        if (animate === undefined || animate === null)
-            animate = true;
-        exec(null, null, "TabBar", "hide", [animate]);
-        this.isShow = false;
-    },
-    onItemSelected: function (tag) {
-        this.selectedItem = tag;
-        if (typeof (this.callbacks[tag].onSelect) == 'function')
-            this.callbacks[tag].onSelect(this.callbacks[tag].name);
-    },
-    selectItem: function (tab) {
-        exec(null, null, "TabBar", "selectItem", [tab]);
-    },
-    updateItem: function (name, options) {
-        if (!options) options = {};
-        exec(null, null, "TabBar", "updateItem", [name, options]);
-    },
-    createItem: function (name, label, image, options) {
-        tag++;
-        if (options && 'onSelect' in options && typeof (options['onSelect']) == 'function') {
-            callbacks[tag] = {'onSelect': options.onSelect, 'name': name};
-        }
-
-        exec(null, null, "TabBar", "createItem", [name, label, image, tag, options]);
-
-    },
-    showItems: function () {
-        //exec.apply(this, parameters);
-        var parameters = [];
-        for (var i = 0; i < arguments.length; i++) {
-            parameters.push(arguments[i]);
-        }
-        exec(null, null, "TabBar", "showItems", [parameters]);
-
-    },
-    onItemSelected: function (tag) {
-        if (typeof (callbacks[tag].onSelect) == 'function')
-            callbacks[tag].onSelect(callbacks[tag].name);
-    },
-    updateItem: function (name, options) {
-        if (!options) options = {};
-        exec(null, null, "TabBar", "updateItem", [name, options]);
-    }
-
-
-}
 
 function TabBar() {
     this.tag = 0;
@@ -123,7 +50,6 @@ TabBar.prototype.createItem = function (name, label, image, options) {
     var tag = this.tag++;
     if (options && 'onSelect' in options && typeof (options['onSelect']) == 'function') {
         this.callbacks[tag] = {'onSelect': options.onSelect, 'name': name};
-        //delete options.onSelect;
     }
 
     cordova.exec("TabBar.createItem", name, label, image, tag, options);
