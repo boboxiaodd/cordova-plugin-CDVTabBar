@@ -17,7 +17,7 @@ function TabBar() {
  *   - tintColorRgba: Tint color for the bar itself (value as above)
  */
 TabBar.prototype.create = function (options) {
-    cordova.exec("TabBar.create", options || {});
+    cordova.exec(null,null,"TabBar","create", options || {});
 };
 
 /**
@@ -52,7 +52,7 @@ TabBar.prototype.createItem = function (name, label, image, options) {
         this.callbacks[tag] = {'onSelect': options.onSelect, 'name': name};
     }
 
-    cordova.exec("TabBar.createItem", name, label, image, tag, options);
+    cordova.exec(null, null, "TabBar", "createItem", [name, label, image, tag, options]);
 };
 
 /**
@@ -70,7 +70,7 @@ TabBar.prototype.getSelectedItem = function () {
 TabBar.prototype.hide = function (animate) {
     if (animate === undefined || animate === null)
         animate = true;
-    cordova.exec("TabBar.hide", {animate: animate});
+    cordova.exec(null,null,"TabBar","hide", [animate]);
     this.isShow = false;
 };
 
@@ -78,7 +78,7 @@ TabBar.prototype.hide = function (animate) {
  * Must be called before any other method in order to initialize the plugin.
  */
 TabBar.prototype.init = function () {
-    cordova.exec("TabBar.init");
+    cordova.exec(null,null,"TabBar","init",[]);
 };
 
 /**
@@ -92,7 +92,7 @@ TabBar.prototype.onItemSelected = function (tag) {
 };
 
 TabBar.prototype.resize = function () {
-    cordova.exec("TabBar.resize");
+    cordova.exec(null,null,"TabBar","resize",[]);
 };
 
 /**
@@ -102,7 +102,7 @@ TabBar.prototype.resize = function () {
  * @see showItems
  */
 TabBar.prototype.selectItem = function (tab) {
-    cordova.exec("TabBar.selectItem", tab);
+    cordova.exec(null,null,"TabBar","selectItem", [tab]);
 };
 
 /**
@@ -112,7 +112,10 @@ TabBar.prototype.selectItem = function (tab) {
  * - \c position specifies whether the tab bar will be placed at the \c top or \c bottom of the screen (default: \c bottom)
  */
 TabBar.prototype.show = function (options) {
-    cordova.exec("TabBar.show", options || {});
+    options = options || {};
+    if(!("style" in options))
+        options.style = style || "Default";
+    cordova.exec(null, null, "TabBar", "show", [style, options]);
     this.isShow = true;
 };
 
@@ -125,11 +128,12 @@ TabBar.prototype.show = function (options) {
  * @see create
  */
 TabBar.prototype.showItems = function () {
-    var parameters = ["TabBar.showItems"];
+    //exec.apply(this, parameters);
+    var parameters = [];
     for (var i = 0; i < arguments.length; i++) {
         parameters.push(arguments[i]);
     }
-    cordova.exec.apply(this, parameters);
+    cordova.exec(null, null, "TabBar", "showItems", [parameters]);
 };
 
 /**
@@ -140,7 +144,7 @@ TabBar.prototype.showItems = function () {
  */
 TabBar.prototype.updateItem = function (name, options) {
     if (!options) options = {};
-    cordova.exec("TabBar.updateItem", name, options);
+    cordova.exec(null, null, "TabBar", "updateItem", [name, options]);
 };
 
 cordova.addConstructor(function () {
